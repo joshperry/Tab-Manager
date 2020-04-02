@@ -7,7 +7,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "devbuild": "react-app-rewired build",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
@@ -35,6 +35,7 @@
     ]
   },
   "devDependencies": {
+    "react-app-rewired": "^2.1.5",
     "react-cosmos": "^5.1.0"
   }
 }
