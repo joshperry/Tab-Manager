@@ -1,0 +1,40 @@
+{
+  "name": "tab-manager",
+  "version": "5.0.0",
+  "description": "Chrome extension to quickly and conveniently manage your open tabs",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joshperry/Tab-Manager.git"
+  },
+  "author": "",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/joshperry/Tab-Manager/issues"
+  },
+  "dependencies": {
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-scripts": "^3.4.1"
+  },
+  "browserslist": {
+    "production": [
+      "last 2 chrome version"
+    ],
+    "development": [
+      "last 1 chrome version"
+    ]
+  },
+  "devDependencies": {
+    "react-cosmos": "^5.1.0"
+  }
+}

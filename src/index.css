@@ -69,7 +69,7 @@ body{
 	float:left;
 	margin-left:2px;
 	margin-bottom:2px;
-	background-image:url(../images/generic.png);
+	background-image:url(./images/generic.png);
 	position:relative;
 }
 .tab.full{
@@ -94,31 +94,31 @@ body{
 	background-color:#DDEEEE;
 }
 .add{
-	background-image:url(../images/new.png);
+	background-image:url(./images/new.png);
 }
 .close{
-	background-image:url(../images/close.png);
+	background-image:url(./images/close.png);
 }
 .new{
-	background-image:url(../images/new.png);
+	background-image:url(./images/new.png);
 }
 .trash{
-	background-image:url(../images/trash.png);
+	background-image:url(./images/trash.png);
 }
 .blocks{
-	background-image:url(../images/block.png);
+	background-image:url(./images/block.png);
 }
 .horizontal{
-	background-image:url(../images/horizontal.png);
+	background-image:url(./images/horizontal.png);
 }
 .vertical{
-	background-image:url(../images/vertical.png);
+	background-image:url(./images/vertical.png);
 }
 .pin{
-	background-image:url(../images/pin.png);
+	background-image:url(./images/pin.png);
 }
 .filter{
-	background-image:url(../images/filter.png);
+	background-image:url(./images/filter.png);
 }
 .tab.left > .limiter, .tab.right > .limiter{
 	width:2px;
