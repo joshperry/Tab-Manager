@@ -1,6 +1,7 @@
 /*global chrome*/
 import React from 'react'
 import Tab from './Tab'
+import classnames from 'classnames'
 
 export default (props) => {
   /*
@@ -16,49 +17,31 @@ export default (props) => {
     chrome.windows.remove(props.window.id)
   }
 
-  // See if we should show the window at all
-  const hideWindow = props.filterTabs && props.tabs
-    .map(tab => !!props.hiddenTabs[tab.id])
-    .reduce((agg, hidden) => agg &= hidden, true)
+  const isBlockLayout = props.layout === 'blocks'
 
-  if(!hideWindow) {
-    // Create a Tab component for each tab on this window
-    const tabsperrow = props.layout === 'blocks' ? Math.ceil(Math.sqrt(props.tabs.length + 2)) : (props.layout === 'vertical' ? 1 : 15)
-    const tabs = props.tabs.map(tab => {
-      const isHidden = !!props.hiddenTabs[tab.id] && props.filterTabs
-      const isSelected = !!props.selection[tab.id]
-
-      return (<Tab
-        window={props.window}
-        layout={props.layout}
-        tab={tab}
-        selected={isSelected}
-        hidden={isHidden}
-        middleClick={props.tabMiddleClick}
-        select={props.select}
-        drag={props.drag}
-        drop={props.drop}
-      //ref={`tab${tab.id}`}
-      />)
-    })
-
-    //TODO: Refactor into map?
-    var children = [];
-    for(var j = 0; j < tabs.length; j++){
-      if(j % tabsperrow === 0 && j && (j < tabs.length-1 || props.layout === 'blocks')) {
-        children.push(<div className="newliner" />)
+  // Return the Window component
+  return (
+    <div className={classnames('window', { block: isBlockLayout })}>
+      <div clasName="tabs">
+      {
+        // Create a Tab component for each tab on this window
+        props.tabs.map(tab => (
+          <Tab
+            key={tab.id.toString()}
+            layout={props.layout}
+            tab={tab}
+            middleClick={props.tabMiddleClick}
+            select={props.select}
+            drag={props.drag}
+            drop={props.drop}
+          />
+        ))
       }
-      children.push(tabs[j]);
-    }
-
-    return (
-      <div className={`window ${props.layout === 'blocks' && 'block'}`}>
-        {children}
-        <div className={`icon add ${props.layout !== 'blocks' && 'windowaction'}`} onClick={addTab} />
-        <div className={`icon close ${props.layout !== 'blocks' && 'windowaction'}`} onClick={close} />
       </div>
-    )
-  } else {
-    return null
-  }
+      <div className="commands">
+        <div className={classnames('icon', 'add', { windowaction: !isBlockLayout })} onClick={addTab} />
+        <div className={classnames('icon', 'close', { windowaction: !isBlockLayout })} onClick={close} />
+      </div>
+    </div>
+  )
 }

@@ -1,5 +1,6 @@
 /*global chrome*/
-import React, { useState, useRef, useLayoutEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
+import classnames from 'classnames'
 
 // Favicons for builtin chrome location views (i.e. `chrome://extensions`)
 const chromeFavIcons = ['bookmarks', 'chrome', 'crashes', 'downloads', 'extensions', 'flags', 'history', 'settings']
@@ -12,8 +13,8 @@ export default (props) => {
   // A reference to the tab element
   const selfRef = useRef()
 
-  // Get dimensions from element once layout completes
-  useLayoutEffect(() => {
+  // Get the dimensions of the tab element once render completes
+  useEffect(() => {
     if(selfRef.current) {
       setDimensions({
         width: selfRef.current.clientWidth,
@@ -35,7 +36,7 @@ export default (props) => {
 			props.select(props.tab.id)
 		} else {
 			chrome.tabs.update(props.tab.id, { selected: true })
-			chrome.windows.update(props.window.id, { focused: true })
+			chrome.windows.update(props.tab.windowId, { focused: true })
 		}
 	}
 
@@ -48,16 +49,11 @@ export default (props) => {
   const dragOver = (e) => {
 		e.nativeEvent.preventDefault()
 
-		const before = draggingOver
-
 		if(props.layout === 'vertical') {
 			setDraggingOver(e.nativeEvent.offsetY > dimensions.height / 2 ? 'bottom' : 'top')
 		} else {
 			setDraggingOver(e.nativeEvent.offsetX > dimensions.width / 2 ? 'right' : 'left')
 		}
-
-    //FIXME: refactor from forceUpdate
-    //if(before != draggingOver) forceUpdate()
 	}
 
   // When another tab is no longer being dragged over this, unshift it
@@ -90,10 +86,14 @@ export default (props) => {
    */
   return (
     <div
-			className={`icon tab ${props.selected && 'selected '} ${props.hidden && 'hidden '} ${props.layout === 'vertical' && 'full '} ${props.tab.incognito && 'incognito '} ${draggingOver}`}
+      className={classnames('icon', 'tab', draggingOver, {
+        selected: props.tab.selected,
+        full: props.layout === 'vertical',
+        incognito: props.tab.incognito,
+      })}
 			style={{
 				backgroundImage: resolveFavIconUrl(),
-				paddingLeft: props.layout === 'vertical' ? '20px' : ''
+				paddingLeft: props.layout === 'vertical' ? '20px' : '',
 			}}
 			title={props.tab.title}
       ref={selfRef}
