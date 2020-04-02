@@ -1,6 +1,7 @@
 /*global chrome*/
 import React, { useState, useRef, useEffect } from 'react'
 import classnames from 'classnames'
+import './styles/tab.scss'
 
 // Favicons for builtin chrome location views (i.e. `chrome://extensions`)
 const chromeFavIcons = ['bookmarks', 'chrome', 'crashes', 'downloads', 'extensions', 'flags', 'history', 'settings']
@@ -59,8 +60,6 @@ export default (props) => {
   // When another tab is no longer being dragged over this, unshift it
   const dragOut = () => {
 		setDraggingOver('')
-    //FIXME: refactor from forceUpdate
-    //forceUpdate()
 	}
 
   // Notify the parent when another tab is dropped on this one so it can be inserted
@@ -88,13 +87,9 @@ export default (props) => {
     <div
       className={classnames('icon', 'tab', draggingOver, {
         selected: props.tab.selected,
-        full: props.layout === 'vertical',
         incognito: props.tab.incognito,
       })}
-			style={{
-				backgroundImage: resolveFavIconUrl(),
-				paddingLeft: props.layout === 'vertical' ? '20px' : '',
-			}}
+			style={{ backgroundImage: resolveFavIconUrl() }}
 			title={props.tab.title}
       ref={selfRef}
 			onClick={click}
@@ -104,7 +99,7 @@ export default (props) => {
 			onDrop={drop}
 			draggable="true"
     >
-      <div className="tabtitle" style={{ display: props.layout !== 'vertical' && 'none' }}>{props.tab.title}</div>
+      <div className="tabtitle" >{props.tab.title}</div>
       <div className="limiter" />
     </div>
   )

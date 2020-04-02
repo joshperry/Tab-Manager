@@ -2,18 +2,20 @@
 import React, { useEffect, useState, useReducer } from 'react'
 import Window from './Window'
 import classnames from 'classnames'
+import './styles/icon.scss'
+import './styles/searchbox.scss'
 
+// Keycode constants
 const KEY_ENTER = 13
 
-// Reducer to cycle through possible layout values
-const initialLayout = localStorage['layout'] || 'horizontal'
+// Layout style constants
+const layouts = ['horizontal', 'vertical', 'block']
+
+// Reducer to cycle through possible layouts
+const initialLayout = localStorage['layout'] || layouts[0]
 function layoutReducer(layout) {
-  let newlayout = 'blocks'
-  if(layout === 'blocks') {
-    return 'horizontal'
-  } else if(layout === 'horizontal') {
-    return 'vertical'
-  }
+  // Get next layout value
+  const newlayout = layouts[(layouts.indexOf(layout) + 1) % layouts.length]
 
   // Store new value to localStorage then return it
   localStorage['layout'] = newlayout
@@ -29,7 +31,7 @@ function filterTabsReducer(filterTabs) {
 }
 
 // Reducer to create a regexp for matching the current search term
-function termReducer(term) {
+function termReducer(current, term) {
   // If there is a search term, create a new case-insensitive regexp
   if(term) {
     return new RegExp(`.*${term}.*`, 'i')
@@ -40,10 +42,12 @@ function termReducer(term) {
 const toTabModel = tab => ({
   id: tab.id,
   windowId: tab.windowId,
+  url: tab.url,
+  title: tab.title,
   pinned: tab.pinned,
   incognito: tab.incognito,
-  url: tab.url,
   favIconUrl: tab.favIconUrl,
+  filterkey: tab.title + tab.url,
   selected: false,
 })
 
@@ -62,7 +66,7 @@ export default (props) => {
   const [wincache, setCache] = useState([])
   // Collection of displayed chrome window models
   const [windows, setWindows] = useState([])
-  // The UI layout style; horizontal, vertical, or blocks
+  // The UI layout style; horizontal, vertical, or block
   const [layout, cycleLayout] = useReducer(layoutReducer, initialLayout)
   // The current search term
   const [term, setTerm] = useReducer(termReducer)
@@ -81,7 +85,7 @@ export default (props) => {
         // Set `selected` on the tabs according to the current search term
         .map(tab => ({
           ...tab,
-          selected: term.test(tab.title + tab.url)
+          selected: term.test(tab.filterkey)
         }))
         // Remove non-selected tabs if filtering is enabled
         .filter(tab => !filterTabs || tab.selected)
@@ -99,6 +103,7 @@ export default (props) => {
         .filter(window => window.tabs)
     )
   }, [wincache, term, filterTabs])
+
 
   /*
    * Handlers
@@ -134,6 +139,7 @@ export default (props) => {
       addWindow()
     }
   }
+
 
   /*
    * INCOMPLETE
@@ -237,31 +243,34 @@ export default (props) => {
    * Main Component
    */
   return (
-    <div>
+    <div className={`manager ${layout}`}>
       {windows.map(window => (
         <Window
           key={window.id.toString()}
           window={window}
           tabs={window.tabs}
           layout={layout}
-        // selection={{}}
-        // hiddenTabs={{}}
           tabMiddleClick={deleteTab}
           select={select}
           drag={drag}
           drop={drop}
         />
       ))}
-      <div className="window searchbox">
-        <input type="text" onChange={e => setTerm(e.target.value)} onKeyDown={searchKeyDown} autofocus="autofocus" />
-        <div className={`icon windowaction ${layout}`} title="Change layout" onClick={cycleLayout} />
-        <div className="icon windowaction trash" title="Delete Tabs" onClick={deleteTabs} />
-        <div className="icon windowaction pin" title="Pin Tabs" onClick={pinTabs} />
-        <div className={classnames('icon', 'windowaction', 'filter', { enabled: filterTabs })}
-          title={`${filterTabs ? 'Do not hide' : 'Hide'} non-matching Tabs`} onClick={toggleFilterTabs} />
-        <div className="icon windowaction new" title="Add Window" onClick={addWindow} />
-      </div>
-      <div clasName="window placeholder" />
+
+      <footer className="searchbox">
+        <div className="content">
+          <input type="text" onChange={e => setTerm(e.target.value)} onKeyDown={searchKeyDown} autofocus="autofocus" />
+        </div>
+
+        <div className="commands">
+          <div className="icon action new" title="Add Window" onClick={addWindow} />
+          <div className={classnames('icon', 'action', 'filter', { enabled: filterTabs })}
+            title={`${filterTabs ? 'Do not hide' : 'Hide'} non-matching Tabs`} onClick={toggleFilterTabs} />
+          <div className="icon action pin" title="Pin Tabs" onClick={pinTabs} />
+          <div className="icon action trash" title="Delete Tabs" onClick={deleteTabs} />
+          <div className="icon action layout" title="Change layout" onClick={cycleLayout} />
+        </div>
+      </footer>
     </div>
   )
 }

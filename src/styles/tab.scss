@@ -1,0 +1,75 @@
+// Tabs are a specialized icons that represent a browser ta
+// which can be dragged and dropped
+.tab.icon {
+	background-image: url(../images/generic.png);
+
+  &.selected {
+    border: 2px solid #3B5686;
+    padding: 0px;
+  }
+
+  // Incognito tabs have a specialized style
+  &.incognito {
+    border:1px solid #ff0000;
+  }
+
+  /*
+   * Drag and drop styles
+   */
+  &.left > .limiter, &.right > .limiter {
+    width: 2px;
+    height: 20px;
+    background-color: #000000;
+    margin-top: -2px;
+
+  }
+
+  &.left > .limiter {
+    margin-left: -4px;
+  }
+
+  &.right > .limiter {
+    float: right;
+    margin-right: -4px;
+  }
+
+
+  &.top > .limiter, &.bottom > .limiter {
+    height: 2px;
+    left: 0px;
+    right: 0px;
+    position: absolute;
+    background-color: #000000;
+  }
+
+  &.top > .limiter {
+    top: -3px;
+  }
+
+  &.bottom > .limiter {
+    bottom: -3px;
+  }
+
+  // Vertical layout specialization
+  .vertical & {
+    width: 340px;
+    background-position: 2px center;
+    padding-left: 20px;
+
+    > .tabtitle {
+      width: 310px;
+      height: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+  }
+
+  // Horizontal and block layout specialization
+  .block &, .horizontal & {
+    > .tabtitle {
+      display: none;
+    }
+  }
+
+}
+

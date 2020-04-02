@@ -1,0 +1,18 @@
+// Search box contains the search textbox and the global
+// action icons
+footer {
+	background-color: white;
+	padding: 8px;
+	position: fixed;
+	bottom: 0px;
+	left: 0px;
+
+  input[type="text"] {
+    border: 1px solid #eeeeee;
+    border-radius: 3px;
+    height: 20px;
+    box-sizing: border-box;
+    margin-right: 8px;
+    width: 100%;
+  }
+}

@@ -1,0 +1,74 @@
+// Icons are the base interactive graphical element in the UI
+// Tabs and Actions are icons
+.icon {
+	height: 20px;
+	width: 20px;
+	box-sizing: border-box;
+	border: 1px solid #b2b2b2;
+	padding: 1px;
+	border-radius: 3px;
+	background-size: 16px 16px;
+	background-repeat: no-repeat;
+	background-position: center;
+	font-family: verdana;
+	font-size: 12px;
+	user-select: none;
+	cursor: arrow;
+
+  // Actions are specialized icons that represent executable commands
+  &.action {
+    margin-right: 2px;
+    margin-left: 0px;
+
+    // Enabled action icons have a specialized bg color
+    + .enabled {
+      background-color: #DDEEEE;
+    }
+
+    // Specific actions
+    &.add {
+      background-image: url(../images/new.png);
+    }
+
+    &.close {
+      background-image: url(../images/close.png);
+    }
+
+    &.new {
+      background-image: url(../images/new.png);
+    }
+
+    &.trash {
+      background-image: url(../images/trash.png);
+    }
+
+    &.pin {
+      background-image: url(../images/pin.png);
+    }
+
+    &.filter {
+      background-image: url(../images/filter.png);
+    }
+
+    // Layout icon specialization per layout
+    &.layout {
+      .block & {
+        background-image: url(../images/block.png);
+      }
+
+      .horizontal & {
+        background-image: url(../images/horizontal.png);
+      }
+
+      .vertical & {
+        background-image: url(../images/vertical.png);
+      }
+    }
+  }
+
+  &:hover {
+    border-width: 2px;
+    padding: 0px;
+  }
+
+}

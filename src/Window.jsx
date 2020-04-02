@@ -1,7 +1,7 @@
 /*global chrome*/
 import React from 'react'
 import Tab from './Tab'
-import classnames from 'classnames'
+import './styles/window.scss'
 
 export default (props) => {
   /*
@@ -17,12 +17,10 @@ export default (props) => {
     chrome.windows.remove(props.window.id)
   }
 
-  const isBlockLayout = props.layout === 'blocks'
-
   // Return the Window component
   return (
-    <div className={classnames('window', { block: isBlockLayout })}>
-      <div clasName="tabs">
+    <section className="window">
+      <div className="content">
       {
         // Create a Tab component for each tab on this window
         props.tabs.map(tab => (
@@ -38,10 +36,11 @@ export default (props) => {
         ))
       }
       </div>
+
       <div className="commands">
-        <div className={classnames('icon', 'add', { windowaction: !isBlockLayout })} onClick={addTab} />
-        <div className={classnames('icon', 'close', { windowaction: !isBlockLayout })} onClick={close} />
+        <div className="icon action add" onClick={addTab} />
+        <div className="icon action close" onClick={close} />
       </div>
-    </div>
+    </section>
   )
 }

@@ -1,0 +1,85 @@
+/*
+ * Highlevel layout will be classed on the main component div
+ * block, horizontal, vertical
+ *
+ * Sections are full-width vertically stacked containers
+ * windows and the searchbox
+ *
+ * Sections have a content div and a commands div
+ *
+ * Icons are the base graphical element for
+ * action buttons and tabs
+ *
+ * Tabs marked with the tab class
+ *
+ * Action buttons marked with action class
+ */
+
+html {
+	padding: 8px;
+	margin: 0px;
+	user-select: none;
+}
+
+body {
+	padding: 0px;
+	margin: 0px;
+	user-select: none;
+}
+
+// Padding for fixed footer
+.manager {
+  padding-bottom: 35px;
+}
+
+// Section and footer common styles
+section, footer {
+	width: 405px;
+	border-top: 1px solid #b2b2b2;
+  display: flex;
+
+  .content {
+    width: 100%;
+  }
+
+  .commands {
+    display: flex;
+    align-items: flex-end;
+    margin-left: 8px;
+  }
+}
+
+// Section specialization
+section {
+	padding-top: 8px;
+	margin-top: 8px;
+	vertical-align: top;
+
+  &:first-child {
+    padding-top: 0px;
+    margin-top: 0px;
+    border-top: none;
+    padding-left: 0px;
+    margin-left: 0px;
+    border-left: none;
+  }
+
+  .content {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 20px);
+    grid-gap: 2px;
+    justify-content: space-between;
+  }
+
+  // Block layout specialization
+  .block & {
+    border-top: none;
+    padding-top: 0px;
+    margin-top: 0px;
+    border-left: 1px solid #b2b2b2;
+    padding-left: 10px;
+    margin-left: 10px;
+    width: auto;
+  }
+}
+
