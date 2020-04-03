@@ -15,6 +15,8 @@
  * Action buttons marked with action class
  */
 
+@import 'vars';
+
 html {
 	padding: 8px;
 	margin: 0px;
@@ -66,7 +68,7 @@ section {
 
   .content {
     display: grid;
-    grid-template-columns: repeat(auto-fill, 20px);
+    grid-template-columns: repeat(auto-fill, $main_square);
     grid-gap: 2px;
     justify-content: space-between;
   }

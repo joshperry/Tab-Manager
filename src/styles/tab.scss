@@ -1,5 +1,8 @@
 // Tabs are a specialized icons that represent a browser ta
 // which can be dragged and dropped
+
+@import 'vars';
+
 .tab.icon {
 	background-image: url(../images/generic.png);
 
@@ -18,7 +21,7 @@
    */
   &.left > .limiter, &.right > .limiter {
     width: 2px;
-    height: 20px;
+    height: $main_square;
     background-color: #000000;
     margin-top: -2px;
 
@@ -54,7 +57,7 @@
   .vertical & {
     width: 340px;
     background-position: 2px center;
-    padding-left: 20px;
+    padding-left: $main_square;
 
     > .tabtitle {
       width: 310px;

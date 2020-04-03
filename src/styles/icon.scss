@@ -1,13 +1,16 @@
 // Icons are the base interactive graphical element in the UI
 // Tabs and Actions are icons
+
+@import 'vars';
+
 .icon {
-	height: 20px;
-	width: 20px;
+	height: $main_square;
+	width: $main_square;
 	box-sizing: border-box;
 	border: 1px solid #b2b2b2;
 	padding: 1px;
 	border-radius: 3px;
-	background-size: 16px 16px;
+	background-size: ($main_square - 4px) ($main_square - 4px);
 	background-repeat: no-repeat;
 	background-position: center;
 	font-family: verdana;
