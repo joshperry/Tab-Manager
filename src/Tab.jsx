@@ -31,7 +31,7 @@ export default (props) => {
 
   // When the tab is clicked, focus it and its containing window
   const click = (e) => {
-		if(e.button === 1) {
+		if(e.button === 1 || e.nativeEvent.altKey) {
 			props.middleClick(props.tab.id)
 		} else if(e.nativeEvent.shiftKey || e.nativeEvent.ctrlKey) {
 			props.select(props.tab.id)
