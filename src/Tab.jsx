@@ -7,7 +7,9 @@ import './styles/tab.scss'
 const chromeFavIcons = ['bookmarks', 'chrome', 'crashes', 'downloads', 'extensions', 'flags', 'history', 'settings']
 
 export default (props) => {
-  // States
+  /*
+   * State
+   */
   const [draggingOver, setDraggingOver] = useState('') // Dragging state
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 }) // Element layout dims
 
@@ -16,12 +18,10 @@ export default (props) => {
 
   // Get the dimensions of the tab element once render completes
   useEffect(() => {
-    if(selfRef.current) {
-      setDimensions({
-        width: selfRef.current.clientWidth,
-        height: selfRef.current.clientHeight
-      })
-    }
+    setDimensions({
+      width: selfRef.current.clientWidth,
+      height: selfRef.current.clientHeight
+    })
   }, [])
 
 
@@ -32,7 +32,7 @@ export default (props) => {
   // When the tab is clicked, focus it and its containing window
   const click = (e) => {
 		if(e.button === 1 || e.nativeEvent.altKey) {
-			props.middleClick(props.tab.id)
+      chrome.tabs.remove(props.tab.id)
 		} else if(e.nativeEvent.shiftKey || e.nativeEvent.ctrlKey) {
 			props.select(props.tab.id)
 		} else {

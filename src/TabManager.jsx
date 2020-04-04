@@ -1,6 +1,6 @@
 /*global chrome*/
 import React, { useEffect, useState, useReducer } from 'react'
-import { assoc, map, filter, pipe, tap, compose, when, lensProp, over } from 'ramda'
+import { assoc, forEachObjIndexed, forEach, path, view, prop, flatten, map, filter, pipe, tap, compose, when, lensProp, over } from 'ramda'
 
 import Window from './Window'
 import classnames from 'classnames'
@@ -10,7 +10,10 @@ import './styles/searchbox.scss'
 
 // Migrate localStorage values to JSON
 if(!localStorage['migrated']) {
-  Object.keys(localStorage).forEach(key => localStorage[key] = JSON.stringify(localStorage[key]))
+  forEachObjIndexed(
+    (value, key) => localStorage[key] = JSON.stringify(value),
+    localStorage
+  )
   localStorage['migrated'] = 'true'
 }
 
@@ -45,6 +48,20 @@ const tabsLens = lensProp('tabs')
 // Execute some operation over the tabs lens
 const overTabs = over(tabsLens)
 
+const selectedLens = lensProp('selected')
+
+// Given the window cache, returns all selected tabs
+const getSelectedTabs = compose(
+  flatten,
+  map(
+    compose(
+      filter(view(selectedLens)),
+      prop('tabs')
+    )
+  )
+)
+
+
 // Custom hook that persists a reducer value to localStorage
 const usePersistedReducer = (key, reduce, initial) => {
   // Setup the reducer, get initial from localStorage if available
@@ -69,6 +86,7 @@ export default (props) => {
   // Collection of displayed chrome window and tab models, fully dependent
   const [windows, setWindows] = useState([])
 
+  const [searchText, setSearchText] = useState('')
   // Reducer for converting search terms into a filter regex
   const [term, setTerm] = useReducer((current, term) => term && new RegExp(`.*${term}.*`, 'i'))
 
@@ -81,6 +99,11 @@ export default (props) => {
     layouts[0]
   )
 
+  // Update the search term when the search text changes
+  useEffect(() => {
+    setTerm(searchText)
+  }, [searchText])
+
   // Calculate the displayed window models dependent value
   useEffect(() => {
     // State of the filtering option
@@ -89,10 +112,10 @@ export default (props) => {
     const haveTerm = () => !!term
 
     // Window display filter
-    const pickDisplayWindows =
+    const pickDisplayModels =
       compose(
         // Don't show windows with no selected tabs
-        filter(window => window.tabs),
+        filter(window => window.tabs.length > 0),
         map(overTabs(
           //Only operate on selected when there's a search term
           when(haveTerm,
@@ -106,7 +129,7 @@ export default (props) => {
       )
 
     // Update the display model from the cache
-    setWindows(pickDisplayWindows(wincache))
+    setWindows(pickDisplayModels(wincache))
   }, [wincache, term, filterTabs])
 
   // Hook all events that mutate the wincache and initialize it from chrome
@@ -168,25 +191,14 @@ export default (props) => {
     }
   }
 
+  // Close any tabs that are currently in the selected state
+  const closeSelectedTabs = () => {
+    chrome.tabs.remove(map(prop('id'), getSelectedTabs(windows)))
+  }
 
   /*
    * INCOMPLETE
    */
-  const deleteTabs = () => {
-    const tabs = Object.keys(this.state.selection).map(id => this.state.tabsbyid[id])
-    if(tabs.length){
-      for(let i = 0; i < tabs.length; i++) {
-        chrome.tabs.remove(tabs[i].id)
-      }
-    } else {
-      chrome.windows.getCurrent(function(w) {
-        chrome.tabs.getSelected(w.id, function(t) {
-          chrome.tabs.remove(t.id)
-        })
-      })
-    }
-  }
-
   const pinTabs = () => {
     var tabs = Object.keys(this.state.selection).map(id => this.state.tabsbyid[id]).sort((a,b) => a.index-b.index)
     if(tabs.length ) {
@@ -228,10 +240,6 @@ export default (props) => {
     }
   }
 
-  const deleteTab = (tabId) => {
-    chrome.tabs.remove(tabId)
-  }
-
   const select = (id) => {
     if(this.state.selection[id]) {
       this.setState({ selection: { ...this.state.selection, [id]: false } })
@@ -252,7 +260,6 @@ export default (props) => {
           window={window}
           tabs={window.tabs}
           layout={layout}
-          tabMiddleClick={deleteTab}
           select={select}
           drag={drag}
           drop={drop}
@@ -261,15 +268,21 @@ export default (props) => {
 
       <footer className="searchbox">
         <div className="content">
-          <input type="text" onChange={e => setTerm(e.target.value)} onKeyDown={searchKeyDown} autofocus="autofocus" />
+          <input type="text" value={searchText}
+            onChange={pipe(path(['target', 'value']), tap(setSearchText))}
+            onKeyDown={searchKeyDown}
+            autofocus="autofocus"
+          />
         </div>
 
         <div className="commands">
           <div className="icon action new" title="Add Window" onClick={addWindow} />
           <div className={classnames('icon', 'action', 'filter', { enabled: filterTabs })}
-            title={`${filterTabs ? 'Do not hide' : 'Hide'} non-matching Tabs`} onClick={toggleFilterTabs} />
+            title={`${filterTabs ? 'Do not hide' : 'Hide'} non-matching Tabs`}
+            onClick={toggleFilterTabs}
+          />
           <div className="icon action pin" title="Pin Tabs" onClick={pinTabs} />
-          <div className="icon action trash" title="Delete Tabs" onClick={deleteTabs} />
+          <div className="icon action trash" title="Delete Tabs" onClick={closeSelectedTabs} />
           <div className="icon action layout" title="Change layout" onClick={cycleLayout} />
         </div>
       </footer>
