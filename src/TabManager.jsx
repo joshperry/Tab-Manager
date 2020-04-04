@@ -1,9 +1,18 @@
 /*global chrome*/
 import React, { useEffect, useState, useReducer } from 'react'
+import { assoc, map, filter, pipe, tap, compose, when, lensProp, over } from 'ramda'
+
 import Window from './Window'
 import classnames from 'classnames'
+
 import './styles/icon.scss'
 import './styles/searchbox.scss'
+
+// Migrate localStorage values to JSON
+if(!localStorage['migrated']) {
+  Object.keys(localStorage).forEach(key => localStorage[key] = JSON.stringify(localStorage[key]))
+  localStorage['migrated'] = 'true'
+}
 
 // Keycode constants
 const KEY_ENTER = 13
@@ -31,6 +40,22 @@ const toWindowModel = window => ({
   tabs: window.tabs?.map(tab => toTabModel(tab)) ?? [],
 })
 
+// Lens to the tabs object property for a window model
+const tabsLens = lensProp('tabs')
+// Execute some operation over the tabs lens
+const overTabs = over(tabsLens)
+
+// Custom hook that persists a reducer value to localStorage
+const usePersistedReducer = (key, reduce, initial) => {
+  // Setup the reducer, get initial from localStorage if available
+  const [value, setValue] = useReducer(reduce, JSON.parse(localStorage[key]) ?? initial)
+
+  // Persist value when it changes
+  useEffect(() => { localStorage[key] = JSON.stringify(value) }, [key, value])
+
+  return [value, setValue]
+}
+
 
 /*
  * Root Component Definition
@@ -39,88 +64,72 @@ export default (props) => {
   /*
    * State
    */
-  // Cache of all chrome window models
+  // Cache of all window and tab models
   const [wincache, setCache] = useState([])
-  // Collection of displayed chrome window models, fully dependent
+  // Collection of displayed chrome window and tab models, fully dependent
   const [windows, setWindows] = useState([])
 
   // Reducer for converting search terms into a filter regex
   const [term, setTerm] = useReducer((current, term) => term && new RegExp(`.*${term}.*`, 'i'))
 
   // Reducer to toggle between showing or hiding selected tabs
-  const [filterTabs, toggleFilterTabs] = useReducer(filterTabs => !filterTabs, !!localStorage['filter-tabs'])
-  // Persist filter option when it changes
-  useEffect(() => { localStorage['filter-tabs'] = filterTabs ? 1 : '' }, [filterTabs])
-
+  const [filterTabs, toggleFilterTabs] = usePersistedReducer('filter-tabs', filterTabs => !filterTabs, false)
   // Reducer that cycles through UI layout styles; horizontal, vertical, or block
-  const [layout, cycleLayout] = useReducer(
+  const [layout, cycleLayout] = usePersistedReducer(
+    'layout',
     layout => layouts[(layouts.indexOf(layout) + 1) % layouts.length],
-    localStorage['layout'] || layouts[0]
+    layouts[0]
   )
-  // Persist layout selection when it changes
-  useEffect(() => { localStorage['layout'] = layout }, [layout])
 
-  // Calculate displayed window models dependent value
+  // Calculate the displayed window models dependent value
   useEffect(() => {
-    // Search term display filter for tabs
-    const pickDisplayTabs = (tabs) => (
-      tabs
-        // Set `selected` on the tabs according to the current search term
-        .map(tab => ({
-          ...tab,
-          selected: term.test(tab.filterkey)
-        }))
-        // Remove non-selected tabs if filtering is enabled
-        .filter(tab => !filterTabs || tab.selected)
-        // Sort tabs by their index
-        .sort((taba, tabb) => taba.index - tabb.index)
-    )
+    // State of the filtering option
+    const filtering = () => filterTabs
+    // Whether there is a search term
+    const haveTerm = () => !!term
 
-    // Set the windows for display
-    setWindows(
-      wincache
-        .map(window => ({
-          ...window,
-          // filter tabs if there's a search term
-          ...term && { tabs: pickDisplayTabs(window.tabs) }
-        }))
-        // Only show windows which have any tabs
-        .filter(window => window.tabs)
-    )
+    // Window display filter
+    const pickDisplayWindows =
+      compose(
+        // Don't show windows with no selected tabs
+        filter(window => window.tabs),
+        map(overTabs(
+          //Only operate on selected when there's a search term
+          when(haveTerm,
+            compose(
+              // When filtering is enabled, hide tabs that are not selected
+              when(filtering, filter(t => t.selected)),
+              map(tab => assoc('selected', term.test(tab.filterkey), tab))
+            )
+          )
+        ))
+      )
+
+    // Update the display model from the cache
+    setWindows(pickDisplayWindows(wincache))
   }, [wincache, term, filterTabs])
 
   // Hook all events that mutate the wincache and initialize it from chrome
   useEffect(() => {
-    // Hook into window events from chrome and update the cache
-    chrome.windows.onCreated.addListener(w => setCache(cache => [ ...cache, toWindowModel(w) ]))
-    chrome.windows.onRemoved.addListener(rid => setCache(cache => cache.filter(w => w.id !== rid)))
+    // Enumerate all the existing windows and tabs into the cache
+    const populateCache = () =>
+      chrome.windows.getAll({ populate: true }, pipe(map(toWindowModel), tap(setCache)))
 
+    // Hook into window events from chrome
+    chrome.windows.onCreated.addListener(populateCache)
+    chrome.windows.onRemoved.addListener(populateCache)
 
-    // Tab was closed (tabId, removeInfo), remove tab from models if !isWindowClosing
-    chrome.tabs.onRemoved.addListener((rid, ri) => ri.isWindowClosing || setCache(cache =>
-      cache.map(w => ({ ...w,  ...w.id === ri.windowId && { tabs: w.tabs.filter(t => t.id !== rid) } }))
-    ))
+    // Hook into tab events from chrome
+    chrome.tabs.onCreated.addListener(populateCache) // Tab was created, append the tab to the cache
+    chrome.tabs.onRemoved.addListener(populateCache) // Tab was closed
+    chrome.tabs.onUpdated.addListener(populateCache) // Tab was updated
+    chrome.tabs.onMoved.addListener(populateCache) // Tab index was changed intrawindow
+    chrome.tabs.onDetached.addListener(populateCache) // Tab was detached from window
+    chrome.tabs.onAttached.addListener(populateCache) // Tab was attached to a window
+    chrome.tabs.onReplaced.addListener(populateCache) // Tab was replaced with a background prerendered or instant tab
 
-
-    // TODO: Hook into tab events from chrome
-    const update = (op) => {
-      return (...args) => {
-        console.log(`tabs.${op} was called`, args)
-      }
-    }
-    chrome.tabs.onCreated.addListener(update('created')) // Tab was created (tab), inject into model collection
-    chrome.tabs.onUpdated.addListener(update('updated')) // Tab was updated (tabId, changeInfo, tab), recreate existing model
-    chrome.tabs.onMoved.addListener(update('moved')) // Tab index was changed intrawindow (tabId, moveInfo), update tab.index in model
-    chrome.tabs.onDetached.addListener(update('detached')) // Tab was detached from window (tabId, detachInfo), remove from model collection
-    chrome.tabs.onAttached.addListener(update('attached')) // Tab was attached to a window (tabId, attachInfo), add to model collection
-    chrome.tabs.onReplaced.addListener(update('replaced')) // Tab was replaced (aTab, rTab) with a background prerendered or instant tab, replace tab in model
-
-
-    // Now that events are hooked, kick off async request to
-    // enumerate all the existing windows and tabs
-    chrome.windows.getAll({ populate: true }, windows => {
-      setCache(windows.map(window => toWindowModel(window)))
-    })
+    // Now that events are hooked, do the initial cache fill
+    populateCache()
   }, [])
 
 
