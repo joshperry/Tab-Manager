@@ -1,6 +1,8 @@
-/*global chrome*/
 import React, { useState, useRef, useEffect } from 'react'
 import classnames from 'classnames'
+
+import { windows, tabs } from './chromewrap'
+
 import './styles/tab.scss'
 
 // Favicons for builtin chrome location views (i.e. `chrome://extensions`)
@@ -32,12 +34,12 @@ export default (props) => {
   // When the tab is clicked, focus it and its containing window
   const click = (e) => {
 		if(e.button === 1 || e.nativeEvent.altKey) {
-      chrome.tabs.remove(props.tab.id)
+      tabs.remove(props.tab.id)
 		} else if(e.nativeEvent.shiftKey || e.nativeEvent.ctrlKey) {
 			props.select(props.tab.id)
 		} else {
-			chrome.tabs.update(props.tab.id, { selected: true })
-			chrome.windows.update(props.tab.windowId, { focused: true })
+			tabs.update(props.tab.id, { selected: true })
+			windows.update(props.tab.windowId, { focused: true })
 		}
 	}
 

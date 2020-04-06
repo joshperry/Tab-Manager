@@ -1,9 +1,13 @@
-/*global chrome*/
 import React, { useEffect, useState, useReducer } from 'react'
-import { assoc, forEachObjIndexed, forEach, path, view, prop, flatten, map, filter, pipe, tap, compose, when, lensProp, over } from 'ramda'
+import {
+  assoc, pick, curry, forEachObjIndexed, forEach, path, view,
+  prop, flatten, map, filter, pipe, tap, compose, when,
+  lensProp, over, andThen, objOf, not
+} from 'ramda'
 
 import Window from './Window'
 import classnames from 'classnames'
+import { tabs, windows } from './chromewrap'
 
 import './styles/icon.scss'
 import './styles/searchbox.scss'
@@ -49,6 +53,7 @@ const tabsLens = lensProp('tabs')
 const overTabs = over(tabsLens)
 
 const selectedLens = lensProp('selected')
+const overSelected = over(selectedLens)
 
 // Given the window cache, returns all selected tabs
 const getSelectedTabs = compose(
@@ -60,7 +65,6 @@ const getSelectedTabs = compose(
     )
   )
 )
-
 
 // Custom hook that persists a reducer value to localStorage
 const usePersistedReducer = (key, reduce, initial) => {
@@ -84,7 +88,7 @@ export default (props) => {
   // Cache of all window and tab models
   const [wincache, setCache] = useState([])
   // Collection of displayed chrome window and tab models, fully dependent
-  const [windows, setWindows] = useState([])
+  const [dispwindows, setWindows] = useState([])
 
   const [searchText, setSearchText] = useState('')
   // Reducer for converting search terms into a filter regex
@@ -115,7 +119,7 @@ export default (props) => {
     const pickDisplayModels =
       compose(
         // Don't show windows with no selected tabs
-        filter(window => window.tabs.length > 0),
+        filter(window => window.tabs.length),
         map(overTabs(
           //Only operate on selected when there's a search term
           when(haveTerm,
@@ -135,53 +139,37 @@ export default (props) => {
   // Hook all events that mutate the wincache and initialize it from chrome
   useEffect(() => {
     // Enumerate all the existing windows and tabs into the cache
-    const populateCache = () =>
-      chrome.windows.getAll({ populate: true }, pipe(map(toWindowModel), tap(setCache)))
+    const syncCache = () =>
+      andThen(compose(tap(setCache), map(toWindowModel)))
+        (windows.getAll({ populate: true }))
 
     // Hook into window events from chrome
-    chrome.windows.onCreated.addListener(populateCache)
-    chrome.windows.onRemoved.addListener(populateCache)
+    windows.onCreated.addListener(syncCache)
+    windows.onRemoved.addListener(syncCache)
 
     // Hook into tab events from chrome
-    chrome.tabs.onCreated.addListener(populateCache) // Tab was created, append the tab to the cache
-    chrome.tabs.onRemoved.addListener(populateCache) // Tab was closed
-    chrome.tabs.onUpdated.addListener(populateCache) // Tab was updated
-    chrome.tabs.onMoved.addListener(populateCache) // Tab index was changed intrawindow
-    chrome.tabs.onDetached.addListener(populateCache) // Tab was detached from window
-    chrome.tabs.onAttached.addListener(populateCache) // Tab was attached to a window
-    chrome.tabs.onReplaced.addListener(populateCache) // Tab was replaced with a background prerendered or instant tab
+    forEach(
+      event => tabs[event].addListener(syncCache),
+      ['onCreated', 'onRemoved', 'onUpdated', 'onMoved',
+        'onDetached', 'onAttached', 'onReplaced']
+    )
 
     // Now that events are hooked, do the initial cache fill
-    populateCache()
+    syncCache()
   }, [])
 
 
   /*
    * Handlers
    */
-  // Adds a new new browser window
+  // Close any tabs that are currently in the selected state
+  const closeSelectedTabs = () =>
+    compose(tabs.remove, map(prop('id')))(getSelectedTabs(dispwindows))
+
+  // Adds a new browser window
   // If any tabs are selected, they will be moved to the new window
-  const addWindow = () => {
-    const [first, ...tabs] = windows.flatMap(window => window.tabs.filter(tab => tab.selected))
-
-    if(first) {
-      // Peel the first selected tab off into a new window
-      chrome.windows.create({ tabId: first.id }, newwin => {
-        // Tabs lose their pinned value after being moved
-        chrome.tabs.update(first.id, { pinned: first.pinned })
-
-        // Move the other selected tabs to the new window
-        // and refresh their pinned value
-        tabs.forEach(tab => {
-          chrome.tabs.move(tab.id, { windowId: newwin.id, index: 1 }, () => {
-            chrome.tabs.update(tab.id, { pinned: tab.pinned })
-          })
-        })
-      })
-    } else {
-      chrome.windows.create({})
-    }
-  }
+  const addWindow = () =>
+      windows.create({ tabs: getSelectedTabs(dispwindows) })
 
   // Watches for certain keypresses in the search box
   const searchKeyDown = (e) => {
@@ -191,44 +179,48 @@ export default (props) => {
     }
   }
 
-  // Close any tabs that are currently in the selected state
-  const closeSelectedTabs = () => {
-    chrome.tabs.remove(map(prop('id'), getSelectedTabs(windows)))
-  }
+  const toggleSelected = id =>
+    setCache(
+      map( // for each window
+        overTabs(map( // lens into each tab
+          // for the tab that matches `id`, invert the `selected` prop
+          when(t => t.id === id, overSelected(not))
+        ))
+      )(wincache)
+    )
+
 
   /*
    * INCOMPLETE
    */
-  const pinTabs = () => {
+  const pinTabs = async () => {
     var tabs = Object.keys(this.state.selection).map(id => this.state.tabsbyid[id]).sort((a,b) => a.index-b.index)
-    if(tabs.length ) {
+    if(tabs.length) {
       if(tabs[0].pinned) {
         tabs.reverse()
       }
 
       for(var i = 0; i < tabs.length; i++) {
-        chrome.tabs.update(tabs[i].id, { pinned: !tabs[0].pinned })
+        tabs.update(tabs[i].id, { pinned: !tabs[0].pinned })
       }
     } else {
-      chrome.windows.getCurrent(function(w) {
-        chrome.tabs.getSelected(w.id,function(t) {
-          chrome.tabs.update(t.id, { pinned: !t.pinned })
-        })
-      })
+      const window = await windows.getCurrent()
+
+      const t = await tabs.getSelected(window.id)
+      tabs.update(t.id, { pinned: !t.pinned })
     }
   }
 
   // Logic when a tab is dropped
-  const drop = (id, before) => {
+  const drop = async (id, before) => {
     var tab = this.state.tabsbyid[id]
     var tabs = Object.keys(this.state.selection).map(id => this.state.tabsbyid[id])
     var index = tab.index+(before?0:1)
 
     for(var i = 0; i < tabs.length; i++){
-      (function(t){
-        chrome.tabs.move(t.id, { windowId: tab.windowId, index }, function() {
-          chrome.tabs.update(t.id, { pinned: t.pinned })
-        })
+      (async function(t){
+        await tabs.move(t.id, { windowId: tab.windowId, index })
+        tabs.update(t.id, { pinned: t.pinned })
       })(tabs[i])
     }
   }
@@ -240,27 +232,19 @@ export default (props) => {
     }
   }
 
-  const select = (id) => {
-    if(this.state.selection[id]) {
-      this.setState({ selection: { ...this.state.selection, [id]: false } })
-    } else {
-      this.setState({ selection: { ...this.state.selection, [id]: true } })
-    }
-  }
-
 
   /*
    * Main Component
    */
   return (
     <div className={`manager ${layout}`}>
-      {windows.map(window => (
+      {dispwindows.map(window => (
         <Window
           key={window.id.toString()}
           window={window}
           tabs={window.tabs}
           layout={layout}
-          select={select}
+          select={toggleSelected}
           drag={drag}
           drop={drop}
         />
@@ -271,7 +255,7 @@ export default (props) => {
           <input type="text" value={searchText}
             onChange={pipe(path(['target', 'value']), tap(setSearchText))}
             onKeyDown={searchKeyDown}
-            autofocus="autofocus"
+            autoFocus
           />
         </div>
 

@@ -1,6 +1,8 @@
-/*global chrome*/
 import React from 'react'
+
+import { windows, tabs } from './chromewrap'
 import Tab from './Tab'
+
 import './styles/window.scss'
 
 export default (props) => {
@@ -9,12 +11,12 @@ export default (props) => {
    */
   // Create a new tab on this window
   const addTab = () => {
-    chrome.tabs.create({windowId: props.window.id})
+    tabs.create({windowId: props.window.id})
   }
 
   // Close this window and all its tabs
   const close = () => {
-    chrome.windows.remove(props.window.id)
+    windows.remove(props.window.id)
   }
 
   // Return the Window component
