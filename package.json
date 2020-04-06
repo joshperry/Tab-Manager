@@ -8,6 +8,7 @@
   },
   "scripts": {
     "devbuild": "react-app-rewired build",
+    "watch": "node watch.js",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
