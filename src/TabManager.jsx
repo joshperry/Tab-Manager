@@ -69,7 +69,7 @@ const getSelectedTabs = compose(
 // Custom hook that persists a reducer value to localStorage
 const usePersistedReducer = (key, reduce, initial) => {
   // Setup the reducer, get initial from localStorage if available
-  const [value, setValue] = useReducer(reduce, JSON.parse(localStorage[key]) ?? initial)
+  const [value, setValue] = useReducer(reduce, localStorage.hasOwnProperty(key) ? JSON.parse(localStorage[key]) : initial)
 
   // Persist value when it changes
   useEffect(() => { localStorage[key] = JSON.stringify(value) }, [key, value])
