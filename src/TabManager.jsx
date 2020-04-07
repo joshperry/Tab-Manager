@@ -36,6 +36,7 @@ const toTabModel = tab => ({
   pinned: tab.pinned,
   incognito: tab.incognito,
   favIconUrl: tab.favIconUrl,
+  index: tab.index,
   filterkey: tab.title + tab.url,
   selected: false,
 })

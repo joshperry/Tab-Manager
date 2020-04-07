@@ -28,14 +28,6 @@ export const tabs = {
   onReplaced: chrome.tabs.onReplaced,
 }
 
-// Given a window, removes the first tab
-const removeHeadTab = pipe(
-  window => tabs.query({ windowId: window.id }),
-  andThen(
-    compose(tab => tabs.remove(tab.id), head)
-  )
-)
-
 
 const cwcreate = promisify(chrome.windows.create)
 

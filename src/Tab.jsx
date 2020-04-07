@@ -38,8 +38,8 @@ export default (props) => {
 		} else if(e.nativeEvent.shiftKey || e.nativeEvent.ctrlKey) {
 			props.select(props.tab.id)
 		} else {
-			tabs.update(props.tab.id, { selected: true })
-			windows.update(props.tab.windowId, { focused: true })
+			tabs.update({ selected: true }, props.tab.id)
+			windows.update({ focused: true }, props.tab.windowId)
 		}
 	}
 
