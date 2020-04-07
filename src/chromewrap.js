@@ -18,6 +18,7 @@ export const tabs = {
   getSelected: promisify(chrome.tabs.getSelected),
   query: promisify(chrome.tabs.query),
 
+  // Events
   onCreated: chrome.tabs.onCreated,
   onRemoved: chrome.tabs.onRemoved,
   onUpdated: chrome.tabs.onUpdated,
@@ -35,6 +36,7 @@ const removeHeadTab = pipe(
   )
 )
 
+
 const cwcreate = promisify(chrome.windows.create)
 
 export const windows = {
@@ -42,27 +44,33 @@ export const windows = {
   getCurrent: promisify(chrome.windows.getCurrent),
 
   create: async props => {
-    // create the new window
-    const window = await cwcreate(dissoc('tabs', props))
-
     // Add support for `tabs` prop to move multiple windows when creating a new window
     if(props.tabs?.length) {
-      // Copy tabid and pinned state before move (chrome wipes pin state on move)
-      const tabscopy = map(pick(['id', 'pinned']), props.tabs)
+      // Copy tab id and pinned state before move (chrome wipes pin state on move)
+      const [first, ...rest] = map(pick(['id', 'pinned']), props.tabs)
 
-      // Move the tabs
-      await tabs.move({ windowId: window.id, index: -1 }, map(prop('id'), props.tabs))
-      // nuke the "New Tab"
-      removeHeadTab(window)
+      // create the new window with the first tab
+      const window = await cwcreate({ ...dissoc('tabs', props), tabId: first.id })
+
+      // Move the remaining tabs if any
+      if(rest.length) {
+        await tabs.move({ windowId: window.id, index: -1 }, map(prop('id'), rest))
+      }
 
       // Update the pin state on the moved tabs
-      forEach(
+      await Promise.all(map(
         when(prop('pinned'), compose(tabs.update({ pinned: true }), prop('id'))),
-        tabscopy
-      )
+        [first, ...rest]
+      ))
+
+      return window
+    } else {
+      // create the new window
+      return await cwcreate(props)
     }
   },
 
+  // Events
   onCreated: chrome.windows.onCreated,
   onRemoved: chrome.windows.onRemoved,
 }

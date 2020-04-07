@@ -2,7 +2,7 @@ import React, { useEffect, useState, useReducer } from 'react'
 import {
   assoc, pick, curry, forEachObjIndexed, forEach, path, view,
   prop, flatten, map, filter, pipe, tap, compose, when,
-  lensProp, over, andThen, objOf, not
+  lensProp, over, andThen, objOf, not, set
 } from 'ramda'
 
 import Window from './Window'
@@ -162,6 +162,14 @@ export default (props) => {
   /*
    * Handlers
    */
+  // Watches for certain keypresses in the search box
+  const searchKeyDown = (e) => {
+    // When enter is pressed, execute the add window functionality
+    if(e.keyCode === KEY_ENTER) {
+      addWindow()
+    }
+  }
+
   // Close any tabs that are currently in the selected state
   const closeSelectedTabs = () =>
     compose(tabs.remove, map(prop('id')))(getSelectedTabs(dispwindows))
@@ -171,45 +179,38 @@ export default (props) => {
   const addWindow = () =>
       windows.create({ tabs: getSelectedTabs(dispwindows) })
 
-  // Watches for certain keypresses in the search box
-  const searchKeyDown = (e) => {
-    // When enter is pressed, execute the add window functionality
-    if(e.keyCode === KEY_ENTER) {
-      addWindow()
-    }
-  }
+  // Toggle the selected flag on a specified tab
+  const toggleSelected = id => setCache(
+    map( // for each window
+      overTabs(map( // lens into each tab
+        // for the tab that matches `id`, invert the `selected` prop
+        when(t => t.id === id, overSelected(not))
+      ))
+    )(wincache)
+  )
 
-  const toggleSelected = id =>
-    setCache(
-      map( // for each window
-        overTabs(map( // lens into each tab
-          // for the tab that matches `id`, invert the `selected` prop
-          when(t => t.id === id, overSelected(not))
-        ))
-      )(wincache)
-    )
+  // Set the selected flag on a specific tab to a specific state
+  const setSelected = (state, id) => setCache(
+    map(
+      overTabs(map(
+        when(t => t.id === id, set(selectedLens, state))
+      ))
+    )(wincache)
+  )
+
+  // Toggle pin mode on all selected tabs
+  const pinTabs = () =>
+    forEach(
+      tab => tabs.update({ pinned: !tab.pinned }, tab.id)
+    )(getSelectedTabs(dispwindows))
+
+  // A tab has begun being dragged
+  const drag = (e,id) => setSelected(true, id)
 
 
   /*
    * INCOMPLETE
    */
-  const pinTabs = async () => {
-    var tabs = Object.keys(this.state.selection).map(id => this.state.tabsbyid[id]).sort((a,b) => a.index-b.index)
-    if(tabs.length) {
-      if(tabs[0].pinned) {
-        tabs.reverse()
-      }
-
-      for(var i = 0; i < tabs.length; i++) {
-        tabs.update(tabs[i].id, { pinned: !tabs[0].pinned })
-      }
-    } else {
-      const window = await windows.getCurrent()
-
-      const t = await tabs.getSelected(window.id)
-      tabs.update(t.id, { pinned: !t.pinned })
-    }
-  }
 
   // Logic when a tab is dropped
   const drop = async (id, before) => {
@@ -222,13 +223,6 @@ export default (props) => {
         await tabs.move(t.id, { windowId: tab.windowId, index })
         tabs.update(t.id, { pinned: t.pinned })
       })(tabs[i])
-    }
-  }
-
-  // A tab has begun being dragged
-  const drag = (e,id) => {
-    if(!this.state.selection[id]) {
-      this.setState({ selection: { [id]: true } })
     }
   }
 
