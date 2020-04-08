@@ -60,7 +60,7 @@ export const windows = {
       return window
     } else {
       // create the new window
-      return await cwcreate(props)
+      return await cwcreate(dissoc('tabs', props))
     }
   },
 

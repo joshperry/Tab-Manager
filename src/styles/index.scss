@@ -31,6 +31,7 @@ body {
 
 .windows {
 	padding: 8px;
+  padding-bottom: 16px;
 }
 
 section {
@@ -45,8 +46,8 @@ section {
   }
 
   .tabs {
-    margin-left: .2em;
-    margin-right: .2em;
+    margin-left: .3em;
+    margin-right: .3em;
     display: grid;
     grid-template-columns: repeat(auto-fill, $main_square);
     grid-gap: 2px;
