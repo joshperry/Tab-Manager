@@ -17,6 +17,7 @@
 	font-size: 12px;
 	user-select: none;
 	cursor: arrow;
+  text-align: center;
 
   // Actions are specialized icons that represent executable commands
   &.action {
@@ -24,9 +25,8 @@
     margin-right: 0px;
     margin-top: 0px;
 
-    // Enabled action icons have a specialized bg color
-    + .enabled {
-      background-color: #DDEEEE;
+    i {
+      vertical-align: -webkit-baseline-middle;
     }
 
     // Specific actions
@@ -51,7 +51,15 @@
     }
 
     &.filter {
-      background-image: url(../images/filter.png);
+      i:before {
+        content: '\f06e';
+      }
+
+      &.enabled {
+        i:before {
+          content: '\f070';
+        }
+      }
     }
 
     // Layout icon specialization per layout
@@ -84,7 +92,7 @@
 
   .fa-th {
     clip-path: polygon(100% 0%, 70% 0%, 70% 30%, 30% 30%, 30% 60%, 0% 60%, 0% 100%, 100% 100%);
-    text-shadow: -1px 1px 1px rgba(255,255,255,0.8);
+    text-shadow: 1px 0px 1px rgba(255,255,255,0.8);
     background-clip: text;
     background-color: #ccc;
     transform: rotate(90deg);

@@ -234,20 +234,8 @@ export default (props) => {
    */
   return (
     <div className={`manager ${layout}`}>
-      <div className="windows">
-        {dispwindows.map(window => (
-          <Window
-            key={window.id.toString()}
-            window={window}
-            tabs={window.tabs}
-            layout={layout}
-            select={toggleSelected}
-            drag={drag}
-            drop={drop}
-          />
-        ))}
-      </div>
-      <footer className="searchbox">
+      <div className="searchbox">
+        <i className="fas fa-search"></i>
         <div className="content">
           <input type="text" value={searchText}
             onChange={pipe(path(['target', 'value']), tap(setSearchText))}
@@ -261,12 +249,25 @@ export default (props) => {
           <div className={classnames('icon', 'action', 'filter', { enabled: filterTabs })}
             title={`${filterTabs ? 'Do not hide' : 'Hide'} non-matching Tabs`}
             onClick={toggleFilterTabs}
-          />
+          ><i className="far"/></div>
           <div className="icon action pin" title="Pin Tabs" onClick={pinTabs} />
           <div className="icon action trash" title="Delete Tabs" onClick={closeSelectedTabs} />
           <div className="icon action layout" title="Change layout" onClick={cycleLayout} />
         </div>
-      </footer>
+      </div>
+      <div className="windows">
+        {dispwindows.map(window => (
+          <Window
+            key={window.id.toString()}
+            window={window}
+            tabs={window.tabs}
+            layout={layout}
+            select={toggleSelected}
+            drag={drag}
+            drop={drop}
+          />
+        ))}
+      </div>
       <div className="grip"><i className="fas fa-th"/></div>
     </div>
   )

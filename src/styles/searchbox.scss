@@ -3,21 +3,26 @@
 
 @import 'vars';
 
-footer {
+.searchbox {
 	background-color: white;
 	padding: 6px;
   padding-left: 10px;
 	bottom: 0px;
 	left: 0px;
 
+  &>i {
+    font-size: $main_square - .8em;
+  }
+
   input[type="text"] {
     border: none;
     outline: none;
+    width: 100%;
     height: $main_square;
     box-sizing: border-box;
     margin-right: 8px;
-    width: 100%;
     height: 1.4em;
     font-size: 1.4em;
+    padding-left: 8px;
   }
 }

@@ -65,7 +65,7 @@ section {
   }
 
   header {
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 
     .commands {
       .action {
@@ -75,19 +75,22 @@ section {
     }
 
     .content {
+      font-size: $main_square - 1em;
+
       i {
-        font-size: $main_square - .6em;
+        padding-right: .2em;
+        font-size: $main_square - .8em;
         vertical-align: middle;
       }
     }
   }
 }
 
-footer {
+.searchbox {
 	border-top: 1px solid #b2b2b2;
 }
 
-header, footer {
+header, .searchbox {
   display: flex;
   align-items: center;
   vertical-align: middle;

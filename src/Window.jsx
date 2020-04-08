@@ -24,7 +24,7 @@ export default (props) => {
     <section className="window">
       <header>
         <span className="content">
-          <i className="far fa-window-maximize"/> Some Window Name
+          <i className="fas fa-layer-group"/> Some Window Name
         </span>
 
         <div className="commands">
