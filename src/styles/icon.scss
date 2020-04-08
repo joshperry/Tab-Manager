@@ -10,7 +10,7 @@
 	border: 1px solid #b2b2b2;
 	padding: 1px;
 	border-radius: 3px;
-	background-size: ($main_square - 4px) ($main_square - 4px);
+	background-size: ($main_square - .6em ) ($main_square - .6em);
 	background-repeat: no-repeat;
 	background-position: center;
 	font-family: verdana;
@@ -20,8 +20,9 @@
 
   // Actions are specialized icons that represent executable commands
   &.action {
-    margin-right: 2px;
-    margin-left: 0px;
+    margin-left: 2px;
+    margin-right: 0px;
+    margin-top: 0px;
 
     // Enabled action icons have a specialized bg color
     + .enabled {
@@ -74,4 +75,20 @@
     padding: 0px;
   }
 
+}
+
+.grip {
+  position: absolute;
+  bottom: 1px;
+  left: 1px;
+
+  .fa-th {
+    clip-path: polygon(100% 0%, 70% 0%, 70% 30%, 30% 30%, 30% 60%, 0% 60%, 0% 100%, 100% 100%);
+    text-shadow: -1px 1px 1px rgba(255,255,255,0.8);
+    background-clip: text;
+    background-color: #ccc;
+    transform: rotate(90deg);
+    color: transparent;
+    cursor: nesw-resize;
+  }
 }

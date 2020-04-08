@@ -11,6 +11,7 @@ import { tabs, windows } from './chromewrap'
 
 import './styles/icon.scss'
 import './styles/searchbox.scss'
+import '@fortawesome/fontawesome-free/css/all.css'
 
 // Migrate localStorage values to JSON
 if(!localStorage['migrated']) {
@@ -233,18 +234,19 @@ export default (props) => {
    */
   return (
     <div className={`manager ${layout}`}>
-      {dispwindows.map(window => (
-        <Window
-          key={window.id.toString()}
-          window={window}
-          tabs={window.tabs}
-          layout={layout}
-          select={toggleSelected}
-          drag={drag}
-          drop={drop}
-        />
-      ))}
-
+      <div className="windows">
+        {dispwindows.map(window => (
+          <Window
+            key={window.id.toString()}
+            window={window}
+            tabs={window.tabs}
+            layout={layout}
+            select={toggleSelected}
+            drag={drag}
+            drop={drop}
+          />
+        ))}
+      </div>
       <footer className="searchbox">
         <div className="content">
           <input type="text" value={searchText}
@@ -265,6 +267,7 @@ export default (props) => {
           <div className="icon action layout" title="Change layout" onClick={cycleLayout} />
         </div>
       </footer>
+      <div className="grip"><i className="fas fa-th"/></div>
     </div>
   )
 }

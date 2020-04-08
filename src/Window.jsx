@@ -22,7 +22,17 @@ export default (props) => {
   // Return the Window component
   return (
     <section className="window">
-      <div className="content">
+      <header>
+        <span className="content">
+          <i className="far fa-window-maximize"/> Some Window Name
+        </span>
+
+        <div className="commands">
+          <div className="icon action add" onClick={addTab} />
+          <div className="icon action close" onClick={close} />
+        </div>
+      </header>
+      <div className="tabs">
       {
         // Create a Tab component for each tab on this window
         props.tabs.map(tab => (
@@ -37,11 +47,6 @@ export default (props) => {
           />
         ))
       }
-      </div>
-
-      <div className="commands">
-        <div className="icon action add" onClick={addTab} />
-        <div className="icon action close" onClick={close} />
       </div>
     </section>
   )

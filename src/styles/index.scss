@@ -18,55 +18,35 @@
 @import 'vars';
 
 html {
-	padding: 8px;
 	margin: 0px;
 	user-select: none;
 }
 
 body {
+	width: $popup_width;
 	padding: 0px;
 	margin: 0px;
 	user-select: none;
 }
 
-// Padding for fixed footer
-.manager {
-  padding-bottom: 35px;
+.windows {
+	padding: 8px;
 }
 
-// Section and footer common styles
-section, footer {
-	width: 405px;
-	border-top: 1px solid #b2b2b2;
-  display: flex;
-
-  .content {
-    width: 100%;
-  }
-
-  .commands {
-    display: flex;
-    align-items: flex-end;
-    margin-left: 8px;
-  }
-}
-
-// Section specialization
 section {
-	padding-top: 8px;
-	margin-top: 8px;
+	margin-top: 16px;
 	vertical-align: top;
 
   &:first-child {
     padding-top: 0px;
     margin-top: 0px;
-    border-top: none;
     padding-left: 0px;
     margin-left: 0px;
-    border-left: none;
   }
 
-  .content {
+  .tabs {
+    margin-left: .2em;
+    margin-right: .2em;
     display: grid;
     grid-template-columns: repeat(auto-fill, $main_square);
     grid-gap: 2px;
@@ -83,5 +63,42 @@ section {
     margin-left: 10px;
     width: auto;
   }
+
+  header {
+    margin-bottom: 6px;
+
+    .commands {
+      .action {
+        height: $main_square - .4em;
+        width: $main_square - .4em;
+      }
+    }
+
+    .content {
+      i {
+        font-size: $main_square - .6em;
+        vertical-align: middle;
+      }
+    }
+  }
 }
 
+footer {
+	border-top: 1px solid #b2b2b2;
+}
+
+header, footer {
+  display: flex;
+  align-items: center;
+  vertical-align: middle;
+
+  .content {
+    width: 100%;
+  }
+
+  .commands {
+    display: flex;
+    align-items: flex-end;
+    margin-left: 8px;
+  }
+}

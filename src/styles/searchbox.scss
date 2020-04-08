@@ -5,17 +5,19 @@
 
 footer {
 	background-color: white;
-	padding: 8px;
-	position: fixed;
+	padding: 6px;
+  padding-left: 10px;
 	bottom: 0px;
 	left: 0px;
 
   input[type="text"] {
-    border: 1px solid #eeeeee;
-    border-radius: 3px;
+    border: none;
+    outline: none;
     height: $main_square;
     box-sizing: border-box;
     margin-right: 8px;
     width: 100%;
+    height: 1.4em;
+    font-size: 1.4em;
   }
 }
