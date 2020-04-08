@@ -72,11 +72,11 @@ export default (props) => {
 	}
 
   // Get the url for the favicon of this tab
-  const resolveFavIconUrl = () => {
-		if(props.tab.url.indexOf('chrome://') !== 0){
-			return props.tab.favIconUrl ? `url(${props.tab.favIconUrl})` : ''
+  const resolveFavIconUrl = (url, favurl) => {
+		if(url.indexOf('chrome://') !== 0){
+			return favurl ? `url(${favurl})` : ''
 		}else{
-			const iconName = props.tab.url.slice(9).match(/^\w+/g)
+			const iconName = url.slice(9).match(/^\w+/g)
 			return (!iconName || chromeFavIcons.indexOf(iconName[0]) < 0) ? '' : `url(../images/chrome/${iconName[0]}.png)`
 		}
 	}
@@ -91,7 +91,7 @@ export default (props) => {
         selected: props.tab.selected,
         incognito: props.tab.incognito,
       })}
-			style={{ backgroundImage: resolveFavIconUrl() }}
+			style={{ backgroundImage: resolveFavIconUrl(props.tab.url, props.tab.favIconUrl) }}
 			title={props.tab.title}
       ref={selfRef}
 			onClick={click}
