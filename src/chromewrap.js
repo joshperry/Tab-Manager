@@ -30,10 +30,12 @@ export const tabs = {
 
 
 const cwcreate = promisify(chrome.windows.create)
+const cwupdate = promisify(chrome.windows.update)
 
 export const windows = {
   getAll: promisify(chrome.windows.getAll),
   getCurrent: promisify(chrome.windows.getCurrent),
+  update: curry((props, windowid) => cwupdate(windowid, props)),
 
   create: async props => {
     // Add support for `tabs` prop to move multiple windows when creating a new window
